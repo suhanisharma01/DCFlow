@@ -27,9 +27,6 @@ cd DCFlow/backend
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 
-# create .env in backend/ with:
-# ANTHROPIC_API_KEY=sk-ant-your-key-here
-
 uvicorn api:app --reload --port 8000
 ```
 
