@@ -1,4 +1,4 @@
-from .schemas import HistoricalFinancials, HistoricalRatios
+from schemas import HistoricalFinancials, HistoricalRatios
 
 
 def compute_ratios(hist: HistoricalFinancials) -> HistoricalRatios:

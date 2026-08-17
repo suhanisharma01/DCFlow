@@ -11,11 +11,11 @@ import os
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 
-from schemas import DCFAssumptions, DCFResult
+from data_schemas import DCFAssumptions, DCFResult
 from engine import run_dcf
 
 load_dotenv()
@@ -114,11 +114,13 @@ Review these for red flags.
 """
 
 
-def run_sanity_check(assumptions: DCFAssumptions, model: str = "claude-sonnet-4-6") -> SanityCheckResult:
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        raise RuntimeError("ANTHROPIC_API_KEY not set in backend/.env")
+def run_sanity_check(assumptions: DCFAssumptions, model: str = "gpt-4o-mini") -> SanityCheckResult:
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError(
+            "OPENAI_API_KEY not set. Add it to backend/.env before calling propose_assumptions()."
+        )
 
-    llm = ChatAnthropic(model=model, temperature=0)
+    llm = ChatOpenAI(model=model, temperature=0)
     structured_llm = llm.with_structured_output(SanityCheckResult)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -174,14 +176,14 @@ Explain what these inputs imply about the stock.
 
 
 def get_recommendation(
-    assumptions: DCFAssumptions, result: DCFResult, model: str = "claude-sonnet-4-6"
+    assumptions: DCFAssumptions, result: DCFResult, model: str = "gpt-4o-mini"
 ) -> Recommendation:
     if assumptions.current_share_price is None:
         raise ValueError("current_share_price is required on assumptions to generate a recommendation.")
-    if not os.getenv("ANTHROPIC_API_KEY"):
-        raise RuntimeError("ANTHROPIC_API_KEY not set in backend/.env")
+    if not os.getenv("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY not set in backend/.env")
 
-    llm = ChatAnthropic(model=model, temperature=0)
+    llm = ChatOpenAI(model=model, temperature=0)
     structured_llm = llm.with_structured_output(Recommendation)
 
     prompt = ChatPromptTemplate.from_messages([

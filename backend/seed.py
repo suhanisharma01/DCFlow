@@ -1,5 +1,5 @@
-from schemas import DCFAssumptions
-from .schemas import HistoricalFinancials, HistoricalRatios
+from data_schemas import DCFAssumptions
+from schemas import HistoricalFinancials, HistoricalRatios
 
 
 def _avg_recent(values, lookback=2):

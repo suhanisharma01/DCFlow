@@ -13,7 +13,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
 from openpyxl.utils import get_column_letter
 
-from schemas import DCFAssumptions
+from data_schemas import DCFAssumptions
 
 HEADER_FILL = PatternFill(start_color="2F3E4E", end_color="2F3E4E", fill_type="solid")
 HEADER_FONT = Font(color="FFFFFF", bold=True)

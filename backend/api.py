@@ -7,6 +7,10 @@ Run with: uvicorn api:app --reload --port 8000
 import os
 import tempfile
 
+from fetcher import fetch_financials
+from ratios import compute_ratios
+from assumptions_agents import propose_assumptions
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
@@ -102,7 +106,63 @@ def export_excel(assumptions: DCFAssumptions):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+SUPPORTED_TICKERS = ["AMZN", "AAPL", "MSFT", "GOOGL", "META", "NFLX", "TSLA"]
 
+
+@app.get("/dcf/supported-tickers")
+def supported_tickers():
+    return {"tickers": SUPPORTED_TICKERS}
+
+
+@app.get("/dcf/load-ticker")
+def load_ticker(ticker: str):
+    """
+    Pulls real financials for a supported ticker, computes historical ratios,
+    and returns AI-proposed forward assumptions ready to drop straight into
+    the dashboard's slider state.
+    """
+    ticker = ticker.upper()
+    if ticker not in SUPPORTED_TICKERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"'{ticker}' is not in the supported ticker list: {SUPPORTED_TICKERS}",
+        )
+    try:
+        hist = fetch_financials(ticker)
+        ratios = compute_ratios(hist)
+        assumptions, proposal = propose_assumptions(hist, ratios)
+        return {
+            "assumptions": assumptions,
+            "rationale": {
+                "revenue_growth": proposal.revenue_growth_rationale,
+                "ebit_margin": proposal.ebit_margin_rationale,
+                "tax_rate": proposal.tax_rate_rationale,
+                "capital_intensity": proposal.capital_intensity_rationale,
+                "wacc": proposal.wacc_rationale,
+                "terminal_growth": proposal.terminal_growth_rationale,
+            },
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/dcf/load-ticker")
+def load_ticker(ticker: str):
+    ticker = ticker.upper()
+    if ticker not in SUPPORTED_TICKERS:
+        raise HTTPException(status_code=400, detail=f"'{ticker}' is not supported.")
+    try:
+        hist = fetch_financials(ticker)
+        ratios = compute_ratios(hist)
+        assumptions, proposal = propose_assumptions(hist, ratios)
+        return {"assumptions": assumptions, "rationale": {...}}
+    except Exception as e:
+        if "429" in str(e) or "Too Many Requests" in str(e):
+            raise HTTPException(
+                status_code=429,
+                detail="Yahoo Finance is rate-limiting requests right now. Wait a minute and try again.",
+            )
+        raise HTTPException(status_code=400, detail=str(e))
+    
 @app.get("/health")
 def health_check():
     return {"status": "ok"}

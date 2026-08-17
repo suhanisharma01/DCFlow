@@ -1,4 +1,4 @@
-from .schemas import DCFAssumptions, DCFResult
+from data_schemas import DCFAssumptions, DCFResult
 
 
 def _pct(x): return f"{x * 100:.1f}%"

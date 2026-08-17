@@ -15,12 +15,12 @@ import os
 from typing import List, Optional
 
 from pydantic import BaseModel, Field
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 from dotenv import load_dotenv
 
-from schemas import DCFAssumptions
-from data_schemas import HistoricalFinancials, HistoricalRatios
+from data_schemas import DCFAssumptions
+from schemas import HistoricalFinancials, HistoricalRatios
 
 load_dotenv()
 
@@ -130,7 +130,7 @@ def propose_assumptions(
     hist: HistoricalFinancials,
     ratios: HistoricalRatios,
     projection_years: int = 5,
-    model: str = "claude-sonnet-4-6",
+    model: str = "gpt-4o-mini",
 ) -> tuple[DCFAssumptions, AssumptionProposal]:
     """
     Calls Claude to propose DCF assumptions for a company, then converts the
@@ -140,13 +140,12 @@ def propose_assumptions(
       - the DCFAssumptions object (for the engine / sliders)
       - the raw AssumptionProposal (for displaying rationale in the UI)
     """
-    if not os.getenv("ANTHROPIC_API_KEY"):
+    if not os.getenv("OPENAI_API_KEY"):
         raise RuntimeError(
-            "ANTHROPIC_API_KEY not set. Copy backend/.env.example to backend/.env "
-            "and add your key before calling propose_assumptions()."
+            "OPENAI_API_KEY not set. Add it to backend/.env before calling propose_assumptions()."
         )
 
-    llm = ChatAnthropic(model=model, temperature=0)
+    llm = ChatOpenAI(model=model, temperature=0)
     structured_llm = llm.with_structured_output(AssumptionProposal)
 
     prompt = _build_prompt(hist, ratios, projection_years)
@@ -188,7 +187,7 @@ if __name__ == "__main__":
     hist = fetch_financials("AMZN")
     ratios = compute_ratios(hist)
 
-    assumptions, proposal = propose_assumptions(hist, ratios, projection_years=5)
+    assumptions, proposal = propose_assumptions(hist, ratios, projection_years=5, model="gpt-4o-mini")
 
     print("--- AI Rationale ---")
     print("Growth:", proposal.revenue_growth_rationale)
