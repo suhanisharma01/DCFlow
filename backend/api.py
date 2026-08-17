@@ -24,10 +24,12 @@ from excel_export import export_dcf_to_excel
 app = FastAPI(title="DCFlow DCF API")
 
 # Allow the frontend dev server to call this API directly.
-# Tighten allow_origins to your actual deployed frontend URL before shipping.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "https://dc-flow.vercel.app/",
+    ],
     allow_methods=["*"],
     allow_headers=["*"],
 )
