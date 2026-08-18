@@ -12,7 +12,7 @@ import {
   Legend,
 } from "recharts";
 
-const API_BASE = "https://dcflow.onrender.com";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:8000";
 
 const DEFAULT_ASSUMPTIONS = {
   ticker: "AMZN",

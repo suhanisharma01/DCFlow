@@ -28,7 +28,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "https://dc-flow.vercel.app/",
+        "https://dc-flow.vercel.app/dashboard",
     ],
     allow_methods=["*"],
     allow_headers=["*"],
