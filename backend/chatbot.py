@@ -13,7 +13,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from dotenv import load_dotenv
 
-from schemas import DCFAssumptions, DCFResult
+from data_schemas import DCFAssumptions, DCFResult
 
 load_dotenv()
 
