@@ -2,6 +2,8 @@
 
 An interactive DCF valuation dashboard where AI handles the repetitive work — pulling financials, suggesting starting assumptions, sanity-checking inputs — while the user makes the actual judgment calls via sliders that recalculate the model instantly.
 
+Live app: https://dc-flow.vercel.app/dashboard
+
 ## Core design decision
 
 **The AI never does arithmetic.** Every valuation number (projected FCF, terminal value, fair value/share) comes from one deterministic Python function, `run_dcf()` in `engine.py` — no LLM involved. It's been validated line-for-line against a real banker-built DCF (reproduces a $140.02 AMZN fair value exactly against a known template).
