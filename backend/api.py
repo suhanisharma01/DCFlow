@@ -20,8 +20,11 @@ from data_schemas import DCFAssumptions, DCFResult
 from engine import run_dcf
 from copilot import run_sensitivity, run_sanity_check, get_recommendation, SensitivityGrid, SanityCheckResult, Recommendation
 from excel_export import export_dcf_to_excel
+from chatbot import chat, ChatRequest, ChatResponse
 
 app = FastAPI(title="DCFlow DCF API")
+
+
 
 # Allow the frontend dev server to call this API directly.
 app.add_middleware(
@@ -105,6 +108,16 @@ def export_excel(assumptions: DCFAssumptions):
             filename=f"{assumptions.ticker}_dcf.xlsx",
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    
+@app.post("/dcf/chat", response_model=ChatResponse)
+def dcf_chat(request: ChatRequest) -> ChatResponse:
+    try:
+        return chat(request)
+    except RuntimeError as e:
+        raise HTTPException(status_code=500, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 

@@ -485,3 +485,70 @@ export default function DCFDashboard() {
     </div>
   );
 }
+
+const [chatMessages, setChatMessages] = useState([]);
+const [chatInput, setChatInput] = useState("");
+const [chatLoading, setChatLoading] = useState(false);
+
+const sendChat = async () => {
+  if (!chatInput.trim()) return;
+  const newMessages = [...chatMessages, { role: "user", content: chatInput }];
+  setChatMessages(newMessages);
+  setChatInput("");
+  setChatLoading(true);
+  try {
+    const res = await fetch(`${API_BASE}/dcf/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: newMessages, assumptions, result }),
+    });
+    const data = await res.json();
+    setChatMessages([...newMessages, { role: "assistant", content: data.reply }]);
+  } catch (e) {
+    setChatMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong." }]);
+  } finally {
+    setChatLoading(false);
+  }
+};
+
+function ChatPanel({ messages, input, setInput, onSend, loading }) {
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-xl p-5">
+      <h3 className="font-semibold mb-3 text-sm text-gray-900">Ask about this valuation</h3>
+      <div className="space-y-2 mb-3 max-h-64 overflow-y-auto">
+        {messages.map((m, i) => (
+          <div
+            key={i}
+            className={`text-sm p-2 rounded-lg ${
+              m.role === "user" ? "bg-blue-50 text-gray-900 ml-8" : "bg-gray-100 text-gray-700 mr-8"
+            }`}
+          >
+            {m.content}
+          </div>
+        ))}
+        {loading && <div className="text-xs text-gray-400">Thinking...</div>}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && onSend()}
+          placeholder="e.g. why is fair value so low?"
+          className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        />
+        <button onClick={onSend} className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+          Send
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+<ChatPanel
+  messages={chatMessages}
+  input={chatInput}
+  setInput={setChatInput}
+  onSend={sendChat}
+  loading={chatLoading}
+/>
