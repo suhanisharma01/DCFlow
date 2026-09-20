@@ -180,6 +180,9 @@ export default function DCFDashboard() {
   const [rationale, setRationale] = useState(null);
   const [scenarios, setScenarios] = useState(null);
   const [scenariosLoading, setScenariosLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   const recalculate = useCallback(async (a) => {
     setLoading(true);
@@ -292,6 +295,27 @@ export default function DCFDashboard() {
     } finally {
       setRecLoading(false);
     }
+  };
+
+  const sendChat = async () => {
+  if (!chatInput.trim()) return;
+  const newMessages = [...chatMessages, { role: "user", content: chatInput }];
+  setChatMessages(newMessages);
+  setChatInput("");
+  setChatLoading(true);
+  try {
+    const res = await fetch(`${API_BASE}/dcf/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: newMessages, assumptions, result }),
+    });
+    const data = await res.json();
+    setChatMessages([...newMessages, { role: "assistant", content: data.reply }]);
+  } catch (e) {
+    setChatMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong." }]);
+  } finally {
+    setChatLoading(false);
+  }
   };
 
   const exportExcel = async () => {
@@ -486,30 +510,9 @@ export default function DCFDashboard() {
   );
 }
 
-const [chatMessages, setChatMessages] = useState([]);
-const [chatInput, setChatInput] = useState("");
-const [chatLoading, setChatLoading] = useState(false);
 
-const sendChat = async () => {
-  if (!chatInput.trim()) return;
-  const newMessages = [...chatMessages, { role: "user", content: chatInput }];
-  setChatMessages(newMessages);
-  setChatInput("");
-  setChatLoading(true);
-  try {
-    const res = await fetch(`${API_BASE}/dcf/chat`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: newMessages, assumptions, result }),
-    });
-    const data = await res.json();
-    setChatMessages([...newMessages, { role: "assistant", content: data.reply }]);
-  } catch (e) {
-    setChatMessages([...newMessages, { role: "assistant", content: "Sorry, something went wrong." }]);
-  } finally {
-    setChatLoading(false);
-  }
-};
+
+
 
 function ChatPanel({ messages, input, setInput, onSend, loading }) {
   return (
